@@ -1,5 +1,10 @@
 # Data-Driven AI：从数据到智能
 
+<p align="center">
+  <img src="assets/dda-book-cover.png" alt="《Data-Driven AI：从数据到智能》封面" width="360">
+</p>
+
+
 > Teach Data Engineers How to Think AI.
 
 一部开源技术书籍，帮助具有数据研发背景的工程师完成 AI 思维升级。
