@@ -1,0 +1,16 @@
+[project]
+name = "data-driven-ai-guide"
+version = "0.1.0"
+description = "《Data-Driven AI：从数据到智能》—— 帮助数据工程师完成 AI 思维升级。"
+readme = "README.md"
+license = "CC-BY-NC-SA-4.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+dependencies = [
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.6.0",
+    "pymdown-extensions>=10.0",
+]
+
+[tool.uv]
+package = false

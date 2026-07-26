@@ -35,13 +35,14 @@ flowchart LR
 - [数据基座：AI Ready Data Platform](foundation/index.md)
 - [数据本体：Ontology](ontology/index.md)
 - [语义层：Semantic Layer](semantic-layer/index.md)
+- [知识基础设施：Knowledge Foundation](knowledge-foundation/index.md)
 - [检索增强：RAG](rag/index.md)
 - [AI 智能体：Agent](agent/index.md)
 - [数据闭环：Data Loop](data-loop/index.md)
+- [本体演进：Ontology Evolution](ontology-evolution/index.md)
 - [附录](appendix/index.md)
-
 ---
 
 ## 贡献
 
-写章节前请先读 [AGENTS.md](../AGENTS.md) 与 `handbook/` 规范。
+写章节前请先读 [AGENTS.md](AGENTS.md)（内含 `handbook/` 规范索引）。

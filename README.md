@@ -46,15 +46,17 @@ flowchart LR
 本书使用 [MkDocs Material](https://squidfunk.github.io/mkdocs-material/) 构建。
 
 ```bash
-# 安装依赖
-pip install mkdocs mkdocs-material
+# 安装依赖（需要 [uv](https://docs.astral.sh/uv/)）
+uv sync
 
 # 本地预览
-mkdocs serve
+uv run mkdocs serve
 
 # 浏览器打开
 # http://127.0.0.1:8000
 ```
+
+在 Cursor 里预览 Markdown 图（`Cmd+Shift+V`）与 MkDocs 站点共用 Cursor **vscode** Mermaid 主题风格；站点侧见 `docs/assets/stylesheets/mermaid.css` 中的 `--dda-mermaid-*` 令牌。
 
 ---
 
@@ -62,6 +64,10 @@ mkdocs serve
 
 ```
 data-driven-ai-guide/
+├── .vscode/settings.json Cursor Markdown 预览（Mermaid neutral 主题）
+├── pyproject.toml        Python 项目与依赖（uv）
+├── uv.lock               依赖锁文件
+├── LICENSE               CC BY-NC-SA 4.0 许可协议
 ├── mkdocs.yml            站点配置
 ├── AGENTS.md             协作路由（入口）
 ├── handbook/             全书规范（唯一真相源）
@@ -95,4 +101,10 @@ data-driven-ai-guide/
 
 ## 许可证
 
-TODO
+本项目采用 [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)（署名-非商业性使用-相同方式共享 4.0 国际）许可协议。
+
+- **署名（BY）**：必须给出适当署名（作者：zhiweio）、提供指向本许可协议的链接，同时标明是否对原始内容做了修改。
+- **非商业性使用（NC）**：不得将本作品用于商业目的。
+- **相同方式共享（SA）**：基于本作品演绎的内容须按相同的许可协议发布。
+
+完整法律文本见 [LICENSE](LICENSE)。
