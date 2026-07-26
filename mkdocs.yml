@@ -1,0 +1,113 @@
+site_name: Data-Driven AI
+site_description: "《Data-Driven AI：从数据到智能》—— 帮助数据工程师完成 AI 思维升级。"
+site_url: https://zhiweio.github.io/data-driven-ai-guide/
+repo_name: zhiweio/data-driven-ai-guide
+repo_url: https://github.com/zhiweio/data-driven-ai-guide
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+
+theme:
+  name: material
+  language: zh
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.prune
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - footnotes
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/zhiweio/data-driven-ai-guide
+      name: GitHub Repository
+  generator: false
+
+extra_javascript:
+  - assets/javascripts/mathjax.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.min.js
+
+extra_css: []
+
+# Exclude files from build
+exclude_docs: |
+  __pycache__/
+  *.py[cod]
+  .DS_Store
+  book/_archive/
+
+nav:
+  - 首页: index.md
+  - 前言:
+      - 前言: preface/index.md
+  - 数据基座:
+      - AI Ready Data Platform: foundation/index.md
+  - 数据本体:
+      - Ontology: ontology/index.md
+  - 语义层:
+      - Semantic Layer: semantic-layer/index.md
+  - 检索增强:
+      - RAG: rag/index.md
+  - AI 智能体:
+      - Agent: agent/index.md
+  - 数据闭环:
+      - Data Loop: data-loop/index.md
+  - 附录:
+      - 附录: appendix/index.md
