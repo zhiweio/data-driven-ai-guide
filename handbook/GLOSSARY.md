@@ -77,6 +77,21 @@
 禁止混用：智能化、数字化。
 所属层：跨层。
 
+**业务语义不可靠**（Unreliable Business Semantics）
+企业业务含义无法被机器稳定、一致、及时地消费的根本问题，是 DDA 各层设计的共同起点。
+禁止混用：模型幻觉、数据质量差（多为症状或子集）。
+所属层：跨层。
+
+**语义传递不可靠**（Semantic Transmission Unreliability）
+业务含义散落在多系统、多口径、多文档中，无法经单一来源稳定传给 AI 消费方。
+禁止混用：网络故障、接口超时。
+所属层：跨层。
+
+**语义时效不可靠**（Semantic Temporal Unreliability）
+业务世界持续变化，而 Ontology、口径、知识资产的定义滞后，导致曾经正确的语义逐渐过时。
+禁止混用：数据新鲜度延迟（仅为子集）、模型知识截止。
+所属层：跨层。
+
 ## 2.2 AI Ready Data Platform 层
 
 **AI 就绪数据平台**（AI Ready Data Platform）
