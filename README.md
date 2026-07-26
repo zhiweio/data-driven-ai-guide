@@ -56,8 +56,6 @@ uv run mkdocs serve
 # http://127.0.0.1:8000
 ```
 
-在 Cursor 里预览 Markdown 图（`Cmd+Shift+V`）与 MkDocs 站点共用 Cursor **vscode** Mermaid 主题风格；站点侧见 `docs/assets/stylesheets/mermaid.css` 中的 `--dda-mermaid-*` 令牌。
-
 ---
 
 ## 目录结构
