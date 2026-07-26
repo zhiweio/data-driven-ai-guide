@@ -16,10 +16,13 @@
 | 跨层 | 业务语义不可靠 | Unreliable Business Semantics | - |
 | 跨层 | 语义传递不可靠 | Semantic Transmission Unreliability | - |
 | 跨层 | 语义时效不可靠 | Semantic Temporal Unreliability | - |
+| 跨层 | 数据即服务 | Data-as-a-Service | DaaS |
+| 跨层 | 升级版数据产品 | AI-ready Data Product | - |
 | AI Ready Data Platform | AI 就绪数据平台 | AI Ready Data Platform | - |
 | AI Ready Data Platform | 数据契约 | Data Contract | - |
 | AI Ready Data Platform | 数据血缘 | Data Lineage | - |
 | Ontology | 数据本体 | Ontology | - |
+| Ontology | 业务世界模型 | Business World Model | - |
 | Ontology | 实体 | Entity | - |
 | Ontology | 关系 | Relation | - |
 | Ontology | 知识图谱 | Knowledge Graph | KG |
@@ -115,6 +118,56 @@
 | 两者共同前提：设计时默认不可靠 | **业务语义不可靠**（总称） | 全书主线逐层驯服，而非指望模型"自己懂业务" |
 
 读各章时可对照：该层加固的是传递链的哪一段，还是让语义跟上业务时钟的哪一环？症状出现在下游（幻觉、口径对不上、Agent 自造 SQL）时，往往要往上追溯是传递断了还是定义过时了。
+
+### 升级版数据产品：从 BI 到 AI-ready
+
+AI-ready 转型不是另建 AI 数仓，而是把数据按**升级版数据产品**交付——驯服语义不可靠的工程落点。详见[前言](../preface/index.md)。
+
+**BI 时代 vs AI-ready：产品交付升级**
+
+| 维度 | BI 时代（表交付） | AI-ready（产品交付） |
+| --- | --- | --- |
+| 基本单元 | 主题表、字段名承载含义 | 数据产品：契约+元数据+质量门禁 |
+| 消费者 | 人（分析师、业务） | 人 + Agent + RAG |
+| 交付接口 | SQL、报表 | 语义 API，拒裸库直连 |
+| 语义 | 散落注释、人口径 | Ontology 单一来源 + SL 单一口径 |
+| 非结构化 | 文档库，与数据割裂 | 知识产品：绑定+版本+溯源 |
+| 迭代 | 工单驱动改表 | Data Loop 反馈驱动产品版本演进 |
+| 验收 | T+1 跑通、报表可用 | 五项 AI 就绪特性 + 评估黄金集 |
+
+**全书八层 = 产品栈逐级升级**
+
+| 层 | 产品升级职责 |
+| --- | --- |
+| AI Ready Data Platform | 定义产品单元（契约、血缘、质量） |
+| Ontology | 产品语义说明书（实体、规则、绑定） |
+| Semantic Layer | 产品交付接口（语义 API） |
+| Knowledge Foundation | 知识产品目录（多模态、版本、绑定） |
+| RAG | 产品消费者的接地与引用 |
+| AI Agent | 新产品消费者（经产品接口消费） |
+| Data Loop | 产品持续迭代机制 |
+| Ontology Evolution | 产品语义版本管理 |
+
+**行业验证：征信与专利数据服务商**
+
+下列实践证明，升级版数据产品标准在商业环境已跑通多年——不是本书的对比主轴，而是可行性证据：
+
+| 产品能力 | 启信宝（征信） | 智慧芽（专利） | 药明诺华（企业内部） |
+| --- | --- | --- | --- |
+| 产品单元 | 数百个带 SLA 的数据 API | 三百+ 数据 API | 数据契约 + 语义接口 |
+| 实体语义 | 多源编号归一主体 | 专利族、权利人标准化 | 化合物别名、跨系统 ID |
+| 知识产品 | 扫描件→结构化+坐标 | 结构图→SMILES/分子指纹 | CSR/SOP/表格/图表 |
+| 产品迭代 | 客户反馈驱动规则修正 | 用户纠错改进抽取 | Data Loop 三路回流 |
+| Agent 消费 | MCP / Agent API 叠加 | Eureka 等平台 | 经 SL 消费，拒裸库 |
+
+**内化时的现实差异（不改变产品本质）**
+
+| 要点 | 说明 |
+| --- | --- |
+| 不卖钱，但标准同构 | 内部产品也须有负责人、契约、消费者清单 |
+| Ontology 须共建 | 无外部产品团队单方面定义口径，须跨部门对齐 |
+| 评估须自建 | 无付费客户替你定义"好"，黄金集是产品质量门禁 |
+| 忌影子产品 | Agent 沙箱自建语义 = 产品目录外的旁路系统 |
 
 ## 四、贯穿全书的可观测四层信息模型
 
