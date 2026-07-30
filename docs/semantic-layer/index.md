@@ -4,13 +4,13 @@
 
 ## 问题
 
-为什么 AI 智能体（AI Agent）不应该直连裸库写 SQL？因为裸库不携带语义，Agent 写出的 SQL 没有业务正确性保障。
+AI Agent 不该直连裸库写 SQL。裸库不携带语义，Agent 拼出来的 SQL 没有业务正确性保障。
 
-数据工程师为什么要学语义层（Semantic Layer，SL）？因为它是数据本体（Ontology）的工程化实现，是把上一章定义的"机器如何理解业务世界"变成"Agent 可调用的接口"的那一层。Ontology 回答"业务世界是什么意思"，SL 回答"Agent 怎么按这个意思去取数据"。没有 SL，Ontology 就是悬空的概念模型；有了 SL，Agent 才能经稳定接口消费数据，而不是自己拼 SQL。
+语义层（Semantic Layer，SL）是数据本体（Ontology）的工程化实现：把上一章「机器如何理解业务世界」变成「Agent 可调用的接口」。Ontology 回答业务世界是什么意思，SL 回答 Agent 怎么按这个意思去取数据。没有 SL，Ontology 只是悬空的概念模型；有了 SL，Agent 才能经稳定接口消费数据，而不是自己拼 SQL。
 
-SL 解决的问题是：让 Agent 经语义接口访问数据，而非裸 SQL——在 Ontology 与消费方之间，SL 既是**传递通道**（对付传递不可靠），也是**产品交付接口**（把语义封装为可调用能力）。由此带来口径统一、字段改名不崩、查询可追责；口径漂移、RAG 与 Agent 各说各话，都是这一层失效时的典型症状。
+SL 让 Agent 经语义接口访问数据，而非裸 SQL。在 Ontology 与消费方之间，它既是**传递通道**（对付传递不可靠），也是**产品交付接口**（把语义封装为可调用能力）。口径统一、字段改名不崩、查询可追责，都靠这一层；口径漂移、RAG 与 Agent 各说各话，则是它失效时的典型症状。
 
-需要强调的是，SL 不只服务 Agent 的结构化查询，也为知识库与检索增强生成（Retrieval-Augmented Generation，RAG）应用提供口径锚点。RAG 生成答案时引用的数据，必须与 SL 定义的业务口径一致，否则 AI 答案里的数字与报表对不上。SL 是跨消费方的单一口径来源，既给 Agent 调用，也给 RAG 生成时对齐数据口径。本章聚焦 SL 本身，RAG 如何对齐口径在后续章节展开。
+SL 不只服务 Agent 的结构化查询，也为知识库与检索增强生成（Retrieval-Augmented Generation，RAG）提供口径锚点。RAG 答案里引用的数字必须与 SL 定义的业务口径一致，否则 AI 答案与报表对不上。本章聚焦 SL 本身；RAG 如何对齐口径在后续章节展开。
 
 ## 传统方案
 
@@ -27,17 +27,15 @@ WHERE target = 'c-Met'
 
 ## 为什么失效
 
-失效机制有四条，每条都有具体后果。
+上游把 `research_code` 改成 `compound_code`，所有依赖这张表的 SQL 与 Agent 提示词全部失效。没有语义层隔离，物理 schema 的任何变动直接冲击消费方。
 
-第一，字段改名即崩溃。上游把 `research_code` 改成 `compound_code`，所有依赖这张表的 SQL 与 Agent 提示词全部失效。没有语义层隔离，物理 schema 的任何变动直接冲击消费方。
+同一指标「在研化合物数」，研发系统按 `status IN ('phase1','phase2','phase3')` 算，BI 报表把 `preclinical` 也算进去，Agent 又用了第三种口径。三个数字不一样，没人说得清哪个对。BI 语义层只管报表口径，管不到 Agent。垂直数据服务商把单一口径定义点当作产品基础设施（见[附录](../appendix/index.md)）；SL 把同一纪律接到 AI 消费——报表、Agent、RAG 引用同一处定义。
 
-第二，口径漂移。同一指标"在研化合物数"，研发系统按 `status IN ('phase1','phase2','phase3')` 算，BI 报表把 `preclinical` 也算进去，Agent 又用了第三种口径。三个数字不一样，没人说得清哪个对。BI 语义层只管报表口径，管不到 Agent。垂直数据服务商把单一口径定义点当作产品基础设施（见[附录](../appendix/index.md)）；SL 把同一纪律接到 AI 消费——报表、Agent、RAG 引用同一处定义。口径漂移是语义传递不可靠最直观的业务后果。
+Agent 直连裸库时，看到的是表名与字段名，不是业务语义。它不知道 `dwd_compound` 里 `status='A'` 是什么意思，只能猜，猜错就答错。
 
-第三，Agent 不懂"这张表到底算什么"。Agent 直连裸库时，它看到的是表名与字段名，不是业务语义。它不知道 `dwd_compound` 里 `status='A'` 是什么意思，只能猜，猜错就答错。裸库给不了 Agent 业务正确性。
+没有 SL 时，RAG 应用自造口径，生成的数字与数仓报表不一致；Agent 查的结构化数据与 RAG 答案里的数字也各算各的。用户从 Agent 拿到一个数，从 RAG 答案拿到另一个数，都对不上，因为没有任何一层统一口径。
 
-第四，RAG 与 Agent 口径各说各话。没有 SL 时，RAG 应用自造口径，生成的数字与数仓报表不一致；Agent 查的结构化数据与 RAG 答案里的数字也各算各的。用户从 Agent 拿到一个数，从 RAG 答案拿到另一个数，两个数都对不上，因为没有任何一层统一口径。
-
-这里必须澄清一个混淆：**语义层不是 BI 语义层。** BI 语义层服务人读报表，容忍口径模糊与人工兜底；SL 服务 Agent 与 RAG 消费，要求契约稳定、单一口径定义点、可程序发现与调用。两者的稳定性、契约、消费要求完全不同。把 BI 语义层当作 SL 用，Agent 与 RAG 消费的稳定性就得不到保障。
+常被混淆的一点：**语义层不是 BI 语义层。** BI 语义层服务人读报表，容忍口径模糊与人工兜底；SL 服务 Agent 与 RAG 消费，要求契约稳定、单一口径定义点、可程序发现与调用。稳定性、契约、消费要求都不一样。把 BI 语义层当作 SL 用，Agent 与 RAG 消费的稳定性就得不到保障。
 
 ```mermaid
 flowchart LR
@@ -52,27 +50,19 @@ flowchart LR
     SL -.统一口径.-> RAG
 ```
 
-图：Agent 直连裸库与经语义层消费的对比（DDA 层：Semantic Layer）
-
-解读：上半部分 Agent 直连裸库，遇到字段改名、口径漂移、无业务语义三类失效。下半部分 Agent 经 SL 消费，SL 提供稳定语义接口并向下封装裸库变动，单一口径定义保证业务正确。RAG 也在生成时经 SL 对齐口径，与 Agent 共享同一份口径来源。这张图说明 SL 的价值是隔离与统一：隔离物理变动，统一业务口径，且统一覆盖 Agent 与 RAG 两类消费方。
+图：裸库直连 vs 经 SL
 
 ## 新的设计思想
 
-DDA 方法重新看这一层：Agent 不该写 SQL，该调语义接口。SL 的设计思想有六点。
+DDA 方法重新看这一层：Agent 不该写 SQL，该调语义接口。
 
-第一，语义 API 而非语义表。SL 对外暴露的是可调用的语义接口（Semantic API），不是又一张语义表。Agent 调用"查活性化合物"这个接口，不需要知道底层表结构。
+SL 对外暴露的是可调用的语义接口（Semantic API），不是又一张语义表。Agent 调用「查活性化合物」，不需要知道底层表结构。一个指标只在一处定义，所有消费方共用——「在研化合物数」在 SL 定义一次，报表、Agent、RAG 生成都引用它。
 
-第二，单一口径定义点。一个指标只在一处定义，所有消费方共用。"在研化合物数"在 SL 定义一次，报表、Agent、RAG 生成引用它。
+语义接口有版本：破坏性变更新主版本，老版本保留过渡期，消费方有迁移窗口。接口元数据本身可被 Agent 查询，Agent 知道有哪些语义接口、各自含义与参数。
 
-第三，版本化。语义接口有版本，破坏性变更新主版本，老版本保留过渡期，消费方有迁移窗口。
+SL 是 Agent 访问数据的唯一通道，裸库不对 Agent 开放。这是边界，不是建议。它不只封装 SQL，还封装「业务怎么说」——Agent 查询与 RAG 生成涉及数据时，都引用 SL 的口径定义，两类消费方的数字才能一致。
 
-第四，Agent 可发现、可调用。SL 的接口元数据本身可被 Agent 查询，Agent 知道有哪些语义接口、各自含义与参数。
-
-第五，拒绝直连裸库。SL 是 Agent 访问数据的唯一通道，裸库不对 Agent 开放。这是边界，不是建议。
-
-第六，跨消费方口径锚点。SL 不只封装 SQL，还封装"业务怎么说"。Agent 查询与 RAG 生成涉及数据时，都引用 SL 的口径定义，保证两类消费方的数字一致。
-
-SL 是 Ontology 的工程化实现接口。Ontology 定义"业务世界是什么意思"，SL 把这份意思封装成"Agent 与 RAG 都能调用的接口"。
+SL 是 Ontology 的工程化实现接口：Ontology 定义业务世界是什么意思，SL 把这份意思封装成 Agent 与 RAG 都能调用的接口。
 
 ## 架构设计
 
@@ -86,11 +76,11 @@ flowchart TB
     RAG[RAG 应用] -.生成时对齐口径.-> SL
 ```
 
-图：Semantic Layer 在消费链中的位置（DDA 层：Semantic Layer）
+图：SL 在消费链中的位置
 
-解读：Agent 调用 SL 的语义接口，SL 基于下层 Ontology 理解业务语义，把调用翻译为受控 SQL 访问数据资产。SL 同时向 Agent 暴露接口元数据，让 Agent 能发现可调用的接口。RAG 在生成涉及数据的答案时，也向 SL 对齐口径。注意箭头方向：消费方向上指向下，Agent 经 SL、经 Ontology 到数据。SL 不是又一层存储，是消费通道上的语义封装层，且同时服务 Agent 与 RAG。
+Agent 调用 SL 的语义接口；SL 基于下层 Ontology 理解业务语义，把调用翻译为受控 SQL 访问数据资产，同时向 Agent 暴露接口元数据。RAG 在生成涉及数据的答案时，也向 SL 对齐口径。消费方向上指向下——SL 不是又一层存储，是消费通道上的语义封装层。
 
-两层分离是这里的工程关键：语义面（定义业务口径）与数据面（执行物理查询）分开。语义面稳定，数据面可变。底层换表、换引擎，语义面不动，Agent 与 RAG 都不受影响。
+语义面（定义业务口径）与数据面（执行物理查询）分开，是这里的工程关键。语义面稳定，数据面可变；底层换表、换引擎，语义面不动，Agent 与 RAG 都不受影响。
 
 ## 工程实践
 
@@ -195,9 +185,9 @@ flowchart TB
     AGT --> T
 ```
 
-图：SL 只覆盖 Meaning — Structure 与 Trust 须另建（DDA 层：Semantic Layer）
+图：SL 只覆盖 Meaning
 
-解读：只完成本章 SL，仍缺第 1 章可程序血缘（Structure）与第 5 章 RAG 黄金集（Trust），第 6 章 Agent 会「口径对但不可信」。选型 MetricFlow 或 Cortex Semantic Views 不改变这一分工。
+只完成本章 SL，仍缺第 1 章可程序血缘（Structure）与第 5 章 RAG 黄金集（Trust），第 6 章 Agent 会「口径对但不可信」。选型 MetricFlow 或 Cortex Semantic Views 不改变这一分工。
 
 落地路线与投入分档见[第 9 章](../decision-boundary/index.md)；药明诺华与平台 Object/Bindings 命名对照见[附录](../appendix/index.md)。
 
@@ -273,7 +263,7 @@ metrics:
       )
 ```
 
-要点有三。第一，`description` 与第 2 章 Ontology、`list_active_compounds` 的 `business_definition` **必须同源**——MetricFlow 不是第二套口径。第二，`filter` 编码在研状态集，与 `underlying.filter` 一致；若临床部门决定「在研」不含 `preclinical`，只改此处并升指标主版本，消费方走 dbt 版本迁移。第三，`entity` + `dimensions` 让「按靶点 c-Met 分组的在研数」成为引擎可生成的标准查询，而不是每次手写 `WHERE target = 'c-Met'`。
+`description` 与第 2 章 Ontology、`list_active_compounds` 的 `business_definition` **必须同源**——MetricFlow 不是第二套口径。`filter` 编码在研状态集，与 `underlying.filter` 一致；若临床部门决定「在研」不含 `preclinical`，只改此处并升指标主版本，消费方走 dbt 版本迁移。`entity` 与 `dimensions` 让「按靶点 c-Met 分组的在研数」成为引擎可生成的标准查询，而不是每次手写 `WHERE target = 'c-Met'`。
 
 分析师与 Agent 侧可用 MetricFlow CLI（`mf query`）或 dbt Cloud Semantic Layer API 查询：
 
@@ -306,7 +296,7 @@ flowchart LR
     SLAPI[list_active_compounds] -.同一口径.-> MT
 ```
 
-图：MetricFlow 在 SL 中的位置 — 语义图生成 SQL，MCP 暴露给 Agent（DDA 层：Semantic Layer）
+图：MetricFlow — 语义图生成 SQL，MCP 暴露给 Agent
 
 1. **数据面**：第 1 章 `compound_active` 契约入仓，`dwd_compound` 为 dbt mart，血缘进目录（Structure，第 1 章）。
 2. **语义面**：semantic model + metrics YAML 进 Git；改 `active_compound_count` 走 PR，与改 API 契约同级。
@@ -381,4 +371,4 @@ MetricFlow **不**替代第 2 章别名消歧：指标 filter 用 `target = 'c-M
 
 ---
 
-**自检（依据 WRITING_STYLE §9）**：本章为何需要？因为 Agent 不应直连裸库，且 RAG 生成也需要口径锚点。数据工程师为何关心？SL 是 Ontology 的工程化实现，是数据工程师最该负责的 Agent 与 RAG 共同消费通道。解决什么问题？让 Agent 经稳定语义接口取数据、RAG 生成时对齐口径，口径统一、字段改名不崩。属哪一 DDA 层？Semantic Layer。改变什么架构？把数据消费从裸 SQL 转为语义 API，语义面与数据面分离，且 SL 成为 Agent 与 RAG 的共同口径锚点。
+**自检（依据 WRITING_STYLE §9）**：Agent 不应直连裸库，RAG 生成也需要口径锚点。SL 是 Ontology 的工程化实现，是数据工程师最该负责的 Agent 与 RAG 共同消费通道。本章让 Agent 经稳定语义接口取数据、RAG 生成时对齐口径，口径统一、字段改名不崩。DDA 层：Semantic Layer。架构变化：数据消费从裸 SQL 转为语义 API，语义面与数据面分离，SL 成为 Agent 与 RAG 的共同口径锚点。
