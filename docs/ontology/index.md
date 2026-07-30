@@ -128,7 +128,7 @@ relations:
 
 这份别名消歧在下游被持续消费与修正：知识基础设施（KF，见第 4 章）用它把多源文档关联到同一实体（没有它，AI 在文档库里用通用名找不到研发代号对应的数据）；数据闭环（Data Loop，见第 7 章）把别名映射的错误回流修正到 Ontology 这一层。别名消歧不是一次定义即完成，它在主线里被消费、被检验、被演进。
 
-别名消歧的工程难度，垂直数据行业早有生产级验证。企业征信要把同一主体在工商、税务、司法、海关多源系统的不同编号--统一社会信用代码、工商注册号、组织机构代码--统一到一个实体，三亿多家企业、每周几十万条变更，容错率极低：银行做贷前尽调查到错人，就是信贷事故。专利数据要做两层对齐：一是专利族对齐，把同一发明在各国专利局的公开号、申请号、优先权号归到同一专利族，横跨一百七十多个司法辖区；二是权利人标准化，同一公司在不同国家专利局登记的名称--"华为技术""Huawei Technologies""HUAWEI TECH CO LTD"--要合并为一个主体，否则竞争情报分析就会把一家公司的专利算成好几家的。这些场景与化合物别名消歧同构：一个真实对象跨数据源有不同标识，靠权威编码体系锚定到同一实体。Ontology 是数据产品的**语义说明书**——没有它，产品只有字段没有含义。上文征信与专利案例说明，这类对齐在商业环境已验证多年；药企要做的是把它写成机器可读、可程序消费的 Ontology，并与内部业务方共建共识。
+别名消歧的工程难度在垂直数据行业早有验证——跨源编号归一、多跳关联推理，与化合物别名消歧同构（详见[附录：行业同构参照](../appendix/index.md)）。Ontology 是数据产品的**语义说明书**；药企要做的是把它写成机器可读、可程序消费的形态，并与业务方共建共识。下面用三层治理把实体定义、术语与规则分开维护，再讨论图实现与落地路线。
 
 ### 三层治理
 
@@ -144,13 +144,143 @@ Ontology 的工程落地可以用三层治理组织，避免一锅粥：
 
 Ontology 落地到图结构时，实体为节点，关系为边。药明诺华可以用 PostgreSQL 配合 Apache AGE 扩展 [^4]（仅为一种实现选择）在同一实例里存结构化数据与图关系，避免维护两套系统。这是"图作为 Ontology 的实例化"的工程取舍，不是 Ontology 的定义。
 
-关联图谱是 Ontology 关系层的直接产物，垂直数据行业有成熟的生产级实践。企业征信平台把三亿多家企业织成关联图谱，边类型包括股权、高管任职、投资、担保、分支机构。这张图的价值在多跳推理：借款人 A 的最大股东 B 的另一家公司 C 给 D 做了担保，D 被列入失信，风险就沿担保链传染回 A。这种"风险传染"规则是 Ontology 规则层的典型内容--不是数据里写着的，是需要显式编码的业务逻辑。专利数据平台的关联图谱则把专利、权利人、发明人、引用、技术分类连成网，支撑竞争情报分析：查某公司的专利布局，要先把它在不同专利局的子公司合并为一个权利人主体，再聚合其专利族，最后沿引用网络找出技术空白。这些多跳查询的背后，是 Ontology 的关系定义与规则编码。
+关联图谱是 Ontology 关系层的产物。药明诺华的多跳场景包括：化合物 → 试验 → 研究者 → 关联试验 → 竞争化合物管线对比；规则层编码「担保链式风险」类逻辑时，边类型与传递规则须显式定义（垂直数据行业的关联图谱实践见[附录](../appendix/index.md)）。
 
 GraphRAG [^5] 与 LazyGraphRAG（微软 2025 年公开的方法，仅为参考）展示了图结构知识在检索中的应用：LazyGraphRAG 用轻量 NLP 抽取替代 LLM 抽取建图，把建图成本压到原来的千分之一量级。这类方法说明图结构作为 Ontology 实现是有工程价值的，但它们是检索技术，不是 Ontology 本身。
 
-### 一个反直觉的发现
+### FAOS 与建模预算投向
 
-关于"在哪些概念上建 Ontology 最有价值"，有一个值得注意的发现。有研究（FAOS 框架 [^2]，2025 年公开）观察到反参数化知识效应：在模型已经熟知的概念上建 Ontology，收益有限甚至可能干扰；在模型知识稀疏的概念上建 Ontology，收益显著。这个发现的工程含义是：不要均匀地铺 Ontology，应优先在模型不熟悉的企业特定概念上建模。药明诺华的内部研发代号、企业特定的研发状态流转、内部试验命名规则，这些是模型不熟悉的，是 Ontology 最该覆盖的地方。
+有研究（FAOS 框架 [^2]，2025 年公开）观察到反参数化知识效应：在模型已经熟知的概念上建 Ontology，收益有限甚至可能干扰；在模型知识稀疏的概念上建 Ontology，收益显著。工程含义是：**不要均匀地铺 Ontology**，应优先在药明诺华内部研发代号、企业特有状态流转、内部试验命名规则等模型不熟悉处建模——这与上文 L2/L3 治理的资源分配直接相关。
+
+| 药明诺华概念 | 模型熟悉度 | 建模预算建议 |
+| --- | --- | --- |
+| 临床试验 Phase I–III | 高（通用医学） | 契约字段 + MeSH 引用即可，不必铺规则层 |
+| `NVP-001` 内部代号体系 | 低 | Ontology 别名 + 绑定契约 |
+| Phase I 失败 → `suspended` 状态机 | 低（企业内部） | L3 规则层 + 可校验约束 |
+| SOP `SOP-CT-012` 终止流程 | 低 | 规则层或 KF 绑定，非重复建通用医学本体 |
+
+建模资源应投向**内部研发代号、企业特有状态流转、跨系统 ID 对齐**，而非重复模型已有的通用知识。若当前只需验证别名与口径，可先走最小可行本体（MVO），不必一次建满四层——分档路径见[第 9 章](../decision-boundary/index.md)。
+
+### 业界 Ontology 路线对照
+
+至此，本书默认路径是：第 1 章契约提供 L1 绑定，本章 YAML 实体与三层治理提供 L2/L3，图结构可选作关系层实现。落地时企业常问第二个问题：**这套描述层自建，还是采购 Palantir / Fabric IQ？** 对照的不是厂商功能清单，而是能否满足上文四要素（实体/关系/规则/约束）并绑定 `compound_active`；下一章语义层与第 6 章 Agent 只消费已绑定的语义，不能替 Ontology 补别名。
+
+| 方案 | DDA 映射 | 药明诺华示例 | 与后续层关系 |
+| --- | --- | --- | --- |
+| **自建 YAML + Git** | 四层架构；绑定契约 | `NVP-001` 别名 + Phase 规则 | 第 3 章 SL 投影同一 `business_definition` |
+| **Palantir Foundry Ontology** | Object/Link + **操作层** Actions | 「终止试验」写回 + 审计日志 | Agent 可调 Action；描述层仍须绑定真实数据 |
+| **Microsoft Fabric IQ** | Entity/Rules + Bindings | 化合物绑定 OneLake 表 | 联邦查询；Bindings 不能替代别名消歧 |
+| **MVO** | 仅 L2 别名 + 关键枚举 | 只做化合物别名 | 足够支撑第 3 章 SL 与第 4 章文档绑定起步 |
+
+```mermaid
+flowchart LR
+    subgraph desc [描述层]
+        D1[实体/关系]
+        D2[规则/约束]
+    end
+    subgraph kinetic [动力学层]
+        K1[Actions 写回]
+        K2[权限/副作用]
+    end
+    YAML[自建 YAML] --> desc
+    PAL[Palantir Foundry] --> desc
+    PAL --> kinetic
+    FAB[Fabric IQ] --> desc
+    FAB --> kinetic
+    MVO[MVO] --> D1
+```
+
+图：Ontology 描述层与操作层 — 自建 vs 平台采购（DDA 层：Ontology）
+
+解读：横轴从描述层延伸到动力学层（写回源系统）。自建 YAML 覆盖描述层即可支撑「查询理解」类 Agent；若需终止试验同步 ERP，须评估操作层——采购平台 Actions 或自建写回服务。GraphRAG / LazyGraphRAG 属于第 5 章 RAG 检索实现，不能替代本章实体与规则的单一定义。
+
+### 落地深潜：Palantir Foundry Ontology 与药明诺华
+
+对照表里的 **Palantir Foundry Ontology** 行，值得用一条完整业务链拆开看——否则容易把它当成「带写回功能的图数据库」，或误以为买了平台就不用做本章的别名与规则共建。Palantir 官方把 Ontology 定义为组织的**操作层（operational layer）**：它坐在已接入平台的数据集、虚拟表与模型之上，把数字资产映射到真实世界的对应物——工厂、订单、**化合物、临床试验**——并同时承载**语义元素**（对象、属性、链接）与**动力学元素**（Actions、Functions、动态权限）。它不是语义层的替代品，也不是「又一个数据目录」；它是把「业务世界是什么意思」与「业务世界允许怎么改」绑在同一套可审计对象模型上的工程产物。
+
+#### 场景：Phase I 失败，必须终止试验并同步全公司口径
+
+药明诺华临床运营经理收到邮件：`NCT04012345`（`NVP-001` / savolitinib 的 c-Met 抑制剂 Phase I 试验）因安全性信号需按 SOP `SOP-CT-012` 终止。传统做法里，她要：在 CTMS 改试验状态、在研发管线表把化合物标为 `suspended`、通知监管事务准备递交说明、在 Slack 里口头同步 BI 团队「这药暂时别算在研」。四处改动、四个口径、邮件与截图当审计证据——这正是本章「为什么失效」里的企业规则无法编码、别名无法机器对齐、写回无法追责的合体。
+
+若药明诺华采购 Foundry（仅为一种实现选择），同一条业务链被收进 Ontology 的对象与 Action 模型，而不是散落在四个系统里各自改。
+
+#### 这套框架是什么：从本章 YAML 到 Object / Link / Action
+
+本书默认路径用 YAML 声明 `entity: Compound` 与 `aliases`；Foundry 用产品化类型把同一套 DDA 概念实例化。命名对照见[附录「自建 YAML vs 平台 Ontology 命名对照」](../appendix/index.md)（药明诺华统一案例小节内），此处只强调**职责映射**，不背厂商菜单：
+
+| DDA / 本章概念 | Palantir Foundry（仅为实现选择） | 药明诺华落地含义 |
+| --- | --- | --- |
+| 实体 `Compound` | Object Type `Compound` | 一个候选药是一个对象，主键绑定研发代号 |
+| 属性 `research_code`、`status` | Properties | `NVP-001`、`phase1` → `suspended` 可版本化 |
+| 别名 savolitinib / CAS | Property 别名或 Shared Properties | Agent 用通用名检索仍落到同一对象 |
+| 关系 `targets c-Met` | Link Type `Compound → Target` | Object Explorer / Vertex 可沿链接跳转 |
+| L3 规则「Phase I 失败 → suspended」 | Action 提交规则 + Submission criteria | 未选终止原因码则 Action 不能提交 |
+| 绑定 `compound_active` 契约 | Object 后端数据集（backing dataset） | Ontology 不悬空，对象来自第 1 章数据产品 |
+| 动作层：终止试验写回 | Action Type `TerminateTrial` | 一次提交改试验对象 + 化合物状态 + 审计 |
+
+关键区分：**Object Type 不是表名翻译**。`dwd_compound` 是数据资产；`Compound` 对象类型声明「业务上什么叫一个化合物、哪些属性代表研发状态、链到哪些试验」，并通过 backing dataset 与契约字段对齐。这与本章「实体层向下绑定 AI 就绪数据平台」一致——Foundry 只是把绑定与索引做成平台能力，并没有免除药明诺华与临床、研发共建 `status` 枚举与终止 SOP 的义务。
+
+**Link Type** 解决的是多跳业务问题。临床经理在 Object Explorer 里从 `Compound: NVP-001` 沿 `studies` 链到 `Trial: NCT04012345`，再沿 `conducted_at` 到研究中心、沿 `competes_with` 看同靶点竞品管线——这正是上文「化合物 → 试验 → 研究者 → 竞争管线」图结构的消费界面，图存储是实现，Link Type 是 Ontology 上的关系契约。
+
+**Action Type** 是 Foundry 相对「纯描述型 Ontology」的增量，也是对照表里「操作层」一词的来源。官方定义：Action 是一次事务，按用户定义的逻辑修改一个或多个对象的属性与链接，并可附带副作用（通知、Webhook、触发管道构建）。`TerminateTrial` 可设计为：
+
+- **参数**：试验对象（下拉仅限有权终止的 Phase I 试验）、终止原因码（对齐 CDISC / 内部枚举）、是否同步暂停化合物研发状态。
+- **规则**：提交时校验操作者角色、试验当前状态必须为 `active`、终止原因必填。
+- **本体编辑**：将 `Trial.status` 设为 `terminated`；若勾选同步，将链接的 `Compound.status` 设为 `suspended`。
+- **副作用**：通知监管事务队列；Webhook 调 ERP；Action log 留痕供 21 CFR Part 11 审计（药明诺华合规约束见附录）。
+
+用户点一次「终止」，或第 6 章 Agent 经授权调用同一 Action Type，**各消费应用共享同一套校验与写回逻辑**——不会出现 CTMS 已终止、数仓仍算在研的口径分裂。对象最新状态写入该 Object Type 的 **writeback dataset**，再经管道同步回第 1 章契约与第 3 章语义层消费者；Ontology 是写回枢纽，不是只读视图。
+
+#### 怎么用：一条写回链与一条只读链
+
+药明诺华落地时通常并行两条链——与第 6 章「查询 vs 变更」分工一致：
+
+```mermaid
+sequenceDiagram
+    participant M as 临床经理
+    participant W as Workshop 应用
+    participant ACT as Action TerminateTrial
+    participant ONT as Foundry Ontology
+    participant WB as Writeback 数据集
+    participant DP as 数据基座 compound_active
+    participant SL as 第3章语义层
+    M->>W: 终止 NCT04012345
+    W->>ACT: 提交 Action（原因码+权限校验）
+    ACT->>ONT: 更新 Trial/Compound 对象
+    ONT->>WB: 物化写回数据集
+    WB->>DP: 管道同步契约表
+    DP->>SL: 刷新在研口径
+    Note over SL: list_active_compounds 不再含 NVP-001
+```
+
+图：Foundry Action 写回链 — Ontology 作变更枢纽（DDA 层：Ontology → 数据基座 → Semantic Layer）
+
+**只读链**（查询「在研 c-Met 抑制剂」）不经过 Action：第 6 章 Agent 或分析师经第 3 章 `list_active_compounds` / MetricFlow 指标查询，仍走 Ontology 别名解析 → 语义口径 → `compound_active` 契约。附录中的端到端序列图对平台 Agent 与自建 Agent 同样适用；Foundry 内置 AIP Agent 若绕过语义层直连对象集，仍会踩口径漂移——平台不替代第 3 章单一口径定义点。
+
+**Functions**（同为动力学元素）适合复杂逻辑：例如按 FAOS 建议，不在通用医学概念上铺规则，而用 Function 计算「该化合物是否满足内部暂停管线规则」，再被 Action 或 Workshop 按钮调用。这与本章 L3 规则层「优先模型知识稀疏区」一致。
+
+#### 解决了什么问题：相对自建 YAML 与相对裸平台
+
+相对**散落语义**，Foundry Ontology 把实体、别名、链接、可执行终止流程收进**单一操作层**，Agent 与人工共用同一对象 ID 与同一 Action 审计日志。相对**本章自建 YAML**，采购路线用 Object/Link/Action 产品化封装了版本、权限、写回物化、跨应用一致编辑——适合终止试验、管线状态机、跨部门写回强审计的场景。相对**误以为「买了就会」**，它**不**自动解决：`NVP-001` 与 savolitinib 的别名仍需人定义；「在研」是否含 `preclinical` 仍须在 Ontology 与第 3 章 SL 同源；SOP 正文仍在第 4 章 KF，Ontology 只编码可执行状态机而非 PDF 全文。
+
+| 痛点 | 无 Ontology | 自建 YAML（本章默认） | Foundry Ontology（采购） |
+| --- | --- | --- | --- |
+| savolitinib → NVP-001 | 人工三系统对齐 | `aliases` + 契约绑定 | Object 别名 + backing dataset |
+| Phase I 失败改状态 | 邮件+四处改表 | L3 规则文档化；写回需自建服务 | Action `TerminateTrial` + log |
+| Agent 终止试验 | 不可信/不可审计 | 须自建 Action API | 同 Action Type，权限继承 |
+| 成本与锁定 | 低，但风险高 | 中，Git 友好 | 高 license + 实施，见第 9 章 |
+
+#### 企业落地实践：药明诺华若上 Foundry，前 90 天做什么
+
+与附录 30-60-90 清单对齐，Ontology 专项建议：
+
+1. **先绑契约，再铺对象**：用 `compound_active`、`trial_master` 等第 1 章契约作 Object backing dataset，禁止「空中对象」。
+2. **先别名，再 Action**：MVO 阶段只上线 `Compound` + 别名 + `Trial` 链接；`TerminateTrial` 在别名与 `status` 枚举与临床部门签字后再发布。
+3. **Action 与 SOP 一一映射**：每个 Action Type 对应一条可审计 SOP（如 `SOP-CT-012`），Submission criteria 编码 SOP 必填项，而非把 SOP PDF 塞进提示词。
+4. **写回同步 SLA**：writeback → 契约表 → 第 3 章 SL 的延迟必须可监控；否则 Agent 查询仍显示旧在研数。
+5. **与第 7 章 Data Loop 衔接**：别名错误、终止原因码新增，从 Action log 与人工纠错回流 Ontology 提案（Foundry 支持 Ontology 变更评审），避免只改表不改对象定义。
+
+采购决策矩阵与「何时 MVO、何时全栈 Foundry」见[第 9 章](../decision-boundary/index.md)。下一章语义层说明如何把本章 `business_definition` 工程化为 MetricFlow 指标，使终止后的在研数在报表、Agent、RAG 三处一致。
 
 ## 最佳实践
 
@@ -195,6 +325,7 @@ GraphRAG [^5] 与 LazyGraphRAG（微软 2025 年公开的方法，仅为参考�
 - [ ] 建模是否优先覆盖模型知识稀疏的企业特定概念？
 - [ ] Ontology 是否作为产品管理，有版本与衰减监控？
 - [ ] 能用行业标准编码的地方是否避免了自造编码体系？
+- [ ] 是否对照过自建 YAML 与采购 Ontology 平台的适用边界（见业界路线对照与 Palantir 落地深潜）？
 
 ---
 

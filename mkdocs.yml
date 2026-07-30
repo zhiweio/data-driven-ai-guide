@@ -104,6 +104,7 @@ nav:
   - AI 智能体：Agent: agent/index.md
   - 数据闭环：Data Loop: data-loop/index.md
   - 本体演进：Ontology Evolution: ontology-evolution/index.md
+  - 路线选择与适用边界: decision-boundary/index.md
   - 附录: appendix/index.md
   - 贡献规范:
       - 协作路由: AGENTS.md

@@ -9,6 +9,8 @@
 
 一部开源技术书籍，帮助具有数据研发背景的工程师完成 AI 思维升级。
 
+定位：资深数据工程师的 AI 思维升级短篇 + 路线决策框架，非初级 AI 教程。
+
 本书不是 AI 入门教程，不是 Prompt Engineering 教程，不是框架使用手册。
 
 本书唯一目标：让读者从数据视角理解 AI。
@@ -47,6 +49,7 @@ flowchart LR
 - [AI 智能体：Agent](agent/index.md)
 - [数据闭环：Data Loop](data-loop/index.md)
 - [本体演进：Ontology Evolution](ontology-evolution/index.md)
+- [路线选择与适用边界](decision-boundary/index.md)
 - [附录](appendix/index.md)
 ---
 

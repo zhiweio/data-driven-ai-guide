@@ -102,6 +102,16 @@
 禁止混用：AI 数仓、向量库项目。
 所属层：跨层。
 
+**最小可行本体**（Minimum Viable Ontology, MVO）
+仅覆盖高价值域的实体、别名与关键规则的最小 Ontology，用于验证语义传递链而非一次建全。
+禁止混用：完整 Ontology、术语表（过窄）。
+所属层：跨层。
+
+**路线选择与适用边界**（Decision Boundary）
+跨层决策框架：判断 DDA 各层应建到哪一档、何时降级或跳过某层。
+禁止混用：架构选型（过宽）、技术栈对比。
+所属层：跨层。
+
 ## 2.2 AI Ready Data Platform 层
 
 **AI 就绪数据平台**（AI Ready Data Platform）
@@ -150,6 +160,11 @@ Ontology 中实体之间的显式业务连接。
 >
 > 知识图谱是 Ontology 的可能实现之一，不是 Ontology 本身。
 
+**操作层**（Action Layer / Kinetic Layer）
+商业 Ontology 平台（如 Palantir Foundry、Microsoft Fabric IQ）中定义可执行操作、权限与写回源系统的层；对应本书 Ontology 动作层的采购实现形态。
+禁止混用：DDA 核心层名、工作流。
+所属层：Ontology（对照概念，非 DDA 正式层名）。
+
 ## 2.4 Semantic Layer 层
 
 **语义层**（Semantic Layer, SL）
@@ -170,6 +185,16 @@ Ontology 的工程化实现，面向 Agent 的语义接口。
 Semantic Layer 暴露给 Agent 的调用接口。
 禁止混用：数据 API（语义不同）。
 所属层：Semantic Layer。
+
+**通用语义层**（Universal / Headless Semantic Layer）
+独立于 BI 与单一云平台的语义层实现，经 API/MCP 暴露指标定义，如 dbt MetricFlow、Cube 一类方案（仅为实现选择）。
+禁止混用：BI 语义层、平台原生语义层。
+所属层：Semantic Layer（实现形态）。
+
+**平台原生语义层**（Platform-native Semantic Layer）
+与特定数据云平台绑定的语义层实现，如 Snowflake Cortex Semantic Views、Databricks Unity Catalog 语义能力（仅为实现选择）。
+禁止混用：通用语义层、BI 语义层。
+所属层：Semantic Layer（实现形态）。
 
 ## 2.5 Knowledge Foundation 层
 

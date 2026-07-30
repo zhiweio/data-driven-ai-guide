@@ -18,6 +18,8 @@
 | 跨层 | 语义时效不可靠 | Semantic Temporal Unreliability | - |
 | 跨层 | 数据即服务 | Data-as-a-Service | DaaS |
 | 跨层 | 升级版数据产品 | AI-ready Data Product | - |
+| 跨层 | 最小可行本体 | Minimum Viable Ontology | MVO |
+| 跨层 | 路线选择与适用边界 | Decision Boundary | - |
 | AI Ready Data Platform | AI 就绪数据平台 | AI Ready Data Platform | - |
 | AI Ready Data Platform | 数据契约 | Data Contract | - |
 | AI Ready Data Platform | 数据血缘 | Data Lineage | - |
@@ -82,9 +84,44 @@
 | DrugBank ID | DB15423 | DrugBank |
 | UMLS CUI | C4073094 | UMLS |
 
-### 数据契约样例
-
 化合物活性清单数据契约 `compound_active` 见第 1 章。语义接口 `list_active_compounds` 见第 3 章。SOP 绑定 `sop_phase1_termination_v3` 见第 4 章。
+
+### 自建 YAML vs 平台 Ontology 命名对照
+
+同一化合物实体在不同路线下的命名示例（便于跨团队对话）：
+
+| 概念 | 自建 YAML | Palantir Foundry | Microsoft Fabric IQ |
+| --- | --- | --- | --- |
+| 化合物实体 | `entity: Compound` | Object Type `Compound` | Entity `Compound` |
+| 研发代号属性 | `research_code` | Property `researchCode` | Property `research_code` |
+| 别名 savolitinib | `aliases.generic_name` | Alias 配置 | Property 别名映射 |
+| 绑定数据产品 | `compound_active` 契约 | Object 后端数据集 | Binding 到 OneLake 表 |
+| 终止试验写回 | 自建 Action 服务（演进） | Action `TerminateTrial` | Function / Action |
+
+### 「在研 c-Met 抑制剂」端到端消费链
+
+药明诺华查询「在研 c-Met 抑制剂有哪些」时，平台内置 Agent（Genie / Cortex Agents，仅为实现选择）与自建 Agent 的消费链一致，数据层仍是中心：
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant PA as 平台Agent或自建Agent
+    participant SL as 语义层
+    participant ONT as Ontology
+    participant DP as 数据基座
+    U->>PA: 在研 c-Met 抑制剂
+    PA->>SL: 查询语义指标/接口
+    SL->>ONT: 解析 target=c-Met 口径
+    ONT->>DP: 绑定 compound_active 契约
+    SL->>DP: 受控 SQL
+    DP-->>SL: 化合物列表
+    SL-->>PA: NVP-001 等
+    PA-->>U: 带口径说明的结果
+```
+
+图：平台 Agent 与自建 Agent 共享同一 SL–Ontology–数据基座链（附录）
+
+解读：Genie / Cortex Agents 是入口，不替代 SL 单一口径。若 SL 未定义「在研」是否含 `preclinical`，任何 Agent 都会给出不同数字。
 
 ### 合规约束
 
@@ -150,15 +187,7 @@ AI-ready 转型不是另建 AI 数仓，而是把数据按**升级版数据产�
 
 **行业验证：征信与专利数据服务商**
 
-下列实践证明，升级版数据产品标准在商业环境已跑通多年——不是本书的对比主轴，而是可行性证据：
-
-| 产品能力 | 启信宝（征信） | 智慧芽（专利） | 药明诺华（企业内部） |
-| --- | --- | --- | --- |
-| 产品单元 | 数百个带 SLA 的数据 API | 三百+ 数据 API | 数据契约 + 语义接口 |
-| 实体语义 | 多源编号归一主体 | 专利族、权利人标准化 | 化合物别名、跨系统 ID |
-| 知识产品 | 扫描件→结构化+坐标 | 结构图→SMILES/分子指纹 | CSR/SOP/表格/图表 |
-| 产品迭代 | 客户反馈驱动规则修正 | 用户纠错改进抽取 | Data Loop 三路回流 |
-| Agent 消费 | MCP / Agent API 叠加 | Eureka 等平台 | 经 SL 消费，拒裸库 |
+详见下文「十二、行业同构参照」。
 
 **内化时的现实差异（不改变产品本质）**
 
@@ -191,7 +220,11 @@ AI-ready 转型不是另建 AI 数仓，而是把数据按**升级版数据产�
 | Apache AGE | 第 2 章 | PostgreSQL 图扩展，Ontology 图结构实现 |
 | GraphRAG / LazyGraphRAG | 第 2 章 | 图结构知识检索方法 |
 | SHACL | 第 2、8 章 | 本体约束校验语言 |
-| dbt MetricFlow / Cube | 第 3 章 | 语义层指标定义工具 |
+| dbt MetricFlow / Cube | 第 3 章 | 通用语义层指标定义 |
+| Snowflake Cortex Semantic Views | 第 3 章 | 平台原生语义层 |
+| Databricks Unity Catalog / Genie | 第 3、6 章 | 平台治理与自然语言消费界面 |
+| Palantir Foundry Ontology | 第 2、9 章 | 商业 Ontology + 操作层 |
+| Microsoft Fabric IQ | 第 2、9 章 | Fabric 栈 Ontology + Bindings |
 | MCP（Model Context Protocol） | 第 3、6 章 | 语义层对 Agent 原生可调用的协议 |
 | Deequ | 第 1 章 | 数据质量门禁工具 |
 | Knowhere | 第 4、5 章 | 文档语义解析与章节树重建 |
@@ -219,7 +252,134 @@ AI-ready 转型不是另建 AI 数仓，而是把数据按**升级版数据产�
 - **药企行业标准**：UMLS CUI、RxNorm、CDISC SDTM、MeSH、ChEMBL、DrugBank 各自官方文档；ALCOA+ 数据完整性原则；21 CFR Part 11 电子记录规范。
 - **垂直数据服务商**：启信宝/合合信息（企业征信）关于实体对齐、关联图谱、数据治理、文档理解引擎（TextIn）的产品与技术资料；智慧芽/PatSnap（专利数据）关于专利族对齐、标准化权利人、化学结构识别（Hiro-OCSR）、新药情报库（Synapse）、Agent 平台（Eureka）的产品与技术资料。
 
-## 七、章节写作规范依据
+## 七、DDA 成熟度模型（L0–L3）
+
+下列等级汇总第 1–8 章 Checklist 与[第 9 章](../decision-boundary/index.md)决策树，可独立用于现状评估，无需重读全书。
+
+| 等级 | 特征 | 典型投入（人月，单业务域） |
+| --- | --- | --- |
+| **L0** | 裸库 + Prompt / 直连 Text-to-SQL | — |
+| **L1** | 数据契约 + 文档目录 + 人复核 Text-to-SQL | 1–2 |
+| **L2** | L1 + MVO Ontology + SL + RAG 黄金集 | 3–8 |
+| **L3** | L2 + 全链路 Data Loop + Ontology Evolution | 8–20+ |
+
+**L2 最低验收（药明诺华）：**
+
+- [ ] 10+ 核心表有数据契约
+- [ ] 3+ 指标 SL 单一口径，Agent/RAG 共用
+- [ ] 化合物 MVO（别名 + 关键状态规则）
+- [ ] RAG 20+ 题黄金集 + Evaluation 闸门
+
+## 八、成本与人力估算
+
+以下为**区间估算**，非报价。前提：已有湖仓、虚构药企规模、1 个高价值业务域（化合物管线）。
+
+| 建设项 | L1 | L2 | L3 |
+| --- | --- | --- | --- |
+| 数据契约（10 表） | 0.5–1 PM | 1–2 PM | 2–3 PM |
+| MVO Ontology | — | 1–3 PM | 3–6 PM |
+| 语义层（3–10 指标） | 0.5–1 PM | 1–2 PM | 2–4 PM |
+| KF + RAG 黄金集 | — | 2–4 PM | 4–8 PM |
+| Data Loop + Evolution | — | — | 4–8 PM |
+| **合计** | **1–2 PM** | **3–8 PM** | **8–20+ PM** |
+
+采购 Palantir / Fabric IQ 另计 license 与实施，不替代上表数据侧投入——平台不能替代契约共建与黄金集。
+
+## 九、组织协作 RACI
+
+| 活动 | 数据平台团队 | AI 产品团队 | 业务方 | 安全/合规 |
+| --- | --- | --- | --- | --- |
+| 数据契约 | R/A | C | C | I |
+| Ontology 定义 | R | C | A | I |
+| SL 口径 | A/R | C | C | I |
+| KF 知识绑定 | R | C | A | I |
+| RAG 黄金集 | C | R | A | C |
+| Agent 编排上线 | C | R/A | I | C |
+| Data Loop 回流审批 | A/R | C | C | I |
+
+R = Responsible，A = Accountable，C = Consulted，I = Informed。
+
+## 十、30-60-90 天行动清单（Monday Morning）
+
+**30 天：盘点与契约**
+
+- 列出 Agent/RAG 会查的 10 张核心表（如 `dwd_compound`、`dwd_clinical_trial`）
+- 为每张表写契约 YAML 草稿（字段含义 + 版本）
+- 标注现有口径争议点（如「在研」是否含 `preclinical`）
+
+**60 天：口径与黄金集**
+
+- 选 3 个核心指标建 SL 单一口径（如「在研化合物数」「活性化合物清单」）
+- 建 RAG 20 题黄金集（监管问答 + 试验状态 + SOP 引用）
+- 跑首轮 Evaluation，记录失败 Trace
+
+**90 天：MVO 与最小闭环**
+
+- 上线化合物 MVO（别名表 + Phase 状态规则）
+- 评估闸门接入：用户纠错 → RAG 参数回流
+- 对照第七节成熟度模型自评是否达 L2
+
+## 十一、业界产品全景索引（浓缩）
+
+正文各章有详述，此处供速查。均为实现选择，非唯一方案。
+
+### Ontology 路线
+
+| 方案 | DDA 映射 | 见章节 |
+| --- | --- | --- |
+| 自建 YAML + Git | 默认描述层 | 第 2 章 |
+| Palantir Foundry Ontology | 描述层 + 操作层 | 第 2、9 章 |
+| Microsoft Fabric IQ | Entity + Bindings + Actions | 第 2、9 章 |
+| MVO | 轻量别名/枚举 | 第 9 章 |
+
+### 语义层路线
+
+| 方案 | 模式 | 见章节 |
+| --- | --- | --- |
+| dbt MetricFlow | Universal / Headless | 第 3 章 |
+| Cube | Universal / Headless | 第 3 章 |
+| Snowflake Cortex Semantic Views | Platform-native | 第 3 章 |
+| Databricks Unity Catalog + Genie | Platform-native | 第 3、6 章 |
+| LookML / Power BI | BI-native（不满足 Agent SL） | 第 3 章 |
+| OSI | 语义定义可移植标准动向 | 第 3 章 |
+
+### Agent 消费
+
+| 方案 | 角色 | 见章节 |
+| --- | --- | --- |
+| 自建编排 + MCP 工具 | 消费自建 SL | 第 3、6 章 |
+| Databricks Genie | 平台 Agent，消费 UC/SL | 第 6 章 |
+| Snowflake Cortex Agents | 平台 Agent，消费 Semantic Views | 第 6 章 |
+
+## 十二、行业同构参照（征信与专利）
+
+正文以药明诺华为主轴；下列垂直数据行业实践与 DDA 问题**同构**，作为可行性证据，非对比主轴。
+
+### 企业征信（启信宝等）
+
+- **实体对齐**：同一企业在工商、税务、司法、海关的多源编号归一为单一主体（同构于化合物 `NVP-001` ↔ `savolitinib`）
+- **关联图谱**：股权、担保、高管任职多跳推理（同构于 Ontology 规则层「风险传染」）
+- **数据产品**：数百个带 SLA 的数据 API，口径单一定义点
+- **Agent 叠加**：在已有 API 产品目录上封装 MCP / Agent API，而非另建影子语义
+
+### 专利数据（智慧芽等）
+
+- **专利族对齐**：同一发明跨司法辖区的公开号、申请号、优先权号归一（同构于跨系统试验 ID）
+- **权利人标准化**：同一公司多语言名称合并（同构于合作方研发代号）
+- **知识产品**：化学结构图 → 可检索分子表示；扫描件 → 带坐标结构化
+- **Agent 平台**：研发情报五阶段（提问-检索-解决-起草-验证），同构于药明诺华药物情报技能包
+
+### 与药明诺华对照速查
+
+| 产品能力 | 征信 | 专利 | 药明诺华 |
+| --- | --- | --- | --- |
+| 产品单元 | 数百数据 API | 三百+ 数据 API | 契约 + 语义接口 |
+| 实体语义 | 多源编号归一主体 | 专利族、权利人标准化 | 化合物别名 |
+| 知识产品 | 扫描件结构化 | 结构图→指纹 | CSR/SOP/图表 |
+| 产品迭代 | 客户反馈修正 | 用户纠错 | Data Loop |
+| Agent 消费 | MCP 叠加 | Eureka 等平台 | 经 SL，拒裸库 |
+
+## 十三、章节写作规范依据
 
 各章遵循的写作规范与自检依据见 `handbook/`：
 

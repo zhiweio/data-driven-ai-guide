@@ -394,6 +394,36 @@ Ontology Evolution 是 Ontology 随业务与反馈持续生长的能力。
 
 Ontology Evolution 回到主线起点，形成闭环。
 
+## 2.9 路线选择与适用边界（跨层）
+
+### 定义
+
+路线选择与适用边界是跨层决策框架，帮助读者在资源有限时判断：DDA 八层应建到哪一档、哪些层可暂缓、自建与采购如何组合。
+
+### 解决什么问题
+
+企业不能也不应每层都上满；误用全套 DDA 与误用 Text-to-SQL 或 AI 沙箱同样危险。
+
+### 为什么需要单独成章
+
+各层正文讲「为什么需要这一层」，本章讲「何时可以不要或降级这一层」。
+
+二者互补，不构成矛盾。
+
+### 工程化要点
+
+- 按语义传递不可靠与语义时效不可靠分型诊断
+- 三档成熟度（轻量 / 标准 / 完整）分阶段建设
+- 反面教材：过度 Ontology、过早 Data Loop、采购平台但数据前提空心化
+- 自建 YAML/Git 与商业 Ontology 平台（Palantir、Fabric IQ 等）的能力映射，非厂商排行榜
+- 中小团队 Minimum Viable Ontology（MVO）路径
+
+### 与八层的关系
+
+读完 Ontology Evolution 之后阅读；可被附录成熟度模型与 RACI 引用。
+
+不替代任何一层的定义。
+
 ---
 
 # 三、章节依赖关系
@@ -416,6 +446,7 @@ Ontology Evolution 回到主线起点，形成闭环。
 | AI Agent | Semantic Layer, Knowledge Foundation, RAG |
 | Data Loop | AI Agent |
 | Ontology Evolution | Ontology, Data Loop |
+| 路线选择与适用边界（跨层） | 全部八层 |
 
 ## 3.3 反向引用规则
 
